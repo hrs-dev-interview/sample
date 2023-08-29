@@ -1,0 +1,48 @@
+/**
+ * Basic ClientApi that supports GET, and POST calls
+ */
+class ClientApi<T>
+{
+    /**
+     * Get method that returns the json string response of the endpoint
+     */
+    public string GetResponseAsString(String endpoint, String username, String password)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}")));
+        HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
+        return response.Content.ReadAsStringAsync().Result;
+    }
+ 
+    /**
+     * Get method that will deserialize a json response from the endpoint into type T
+     */
+    public T GetResponseAsType(String endpoint, String username, String password)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}")));
+        HttpResponseMessage response = httpClient.GetAsync(endpoint).Result;
+        String jsonPayload = response.Content.ReadAsStringAsync().Result;
+ 
+        return JsonConvert.DeserializeObject<T>(jsonPayload);
+    }
+ 
+    /**
+     * Post endpoint that will post the payload to the given endpoint and deserialize the response into type T
+     */
+    public static T Post(String endpoint, String username, String password, String payload)
+    {
+        HttpClient httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}")));
+ 
+        StringContent stringContent = new StringContent(payload, Encoding.UTF8, "application/json");
+ 
+        HttpResponseMessage response = httpClient.PostAsync(endpoint, stringContent).Result;
+        String jsonPayload = response.Content.ReadAsStringAsync().Result;
+ 
+        return JsonConvert.DeserializeObject<T>(jsonPayload);
+    }
+}
